@@ -1,0 +1,92 @@
+body {
+  font-family: monospace;
+  margin: 1rem;
+  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.head {
+  grid-area: head;
+  display: flex;
+  gap: 1rem;
+}
+
+.title {
+  margin: 0;
+}
+
+.action {
+  border: 0;
+  padding: 0;
+  background: inherit;
+  font: inherit;
+  font-size: 1.1rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.source {
+  flex-grow: 999;
+  border: 1px solid #666;
+  position: relative;
+  min-width: 10rem;
+}
+
+.source__label {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  padding: 0.5rem;
+  z-index: 2;
+  background: #fff;
+}
+
+.source__input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  font: inherit;
+  resize: none;
+  border: 0;
+  padding: 2rem 0.5rem 0.5rem 0.5rem;
+}
+
+.registers {
+  border: 1px solid #666;
+  padding: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: min-content min-content 1fr;
+  gap: 0.5rem;
+}
+
+.output {
+  grid-column: 1/span 4;
+  margin: 0;
+}
+
+.memory {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 0.5rem;
+  border: 1px solid #666;
+  padding: 0.5rem;
+}
+
+.cell__label {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.cell__value {
+  font-size: 1.03rem;
+}

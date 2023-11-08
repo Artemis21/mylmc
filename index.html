@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>LMC Emulator</title>
+    <link rel="stylesheet" href="/style.css">
+    <script type="module" src="/ui.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <body>
+    <div class="head">
+      <h1 class="title">LMC Emulator</h1>
+      <button class="action" id="reset">Reset</button>
+      <button class="action" id="load">Load</button>
+      <button class="action" id="run">Run</button>
+      <button class="action" id="step">Step</button>
+    </div>
+    <main>
+      <div class="source">
+        <div class="cell__label source__label">ASSEMBLY</div>
+        <textarea class="source__input" placeholder="Start typing..." id="source"></textarea>
+      </div>
+      <div class="registers">
+        <div class="cell">
+          <div class="cell__label">INP</div>
+          <div class="cell__value" id="inp_reg">0</div>
+        </div>
+        <div class="cell">
+          <div class="cell__label">PC</div>
+          <div class="cell__value" id="ip_reg">0</div>
+        </div>
+        <div class="cell">
+          <div class="cell__label">ACC</div>
+          <div class="cell__value" id="acc_reg">0</div>
+        </div>
+        <div class="cell">
+          <div class="cell__label">HLT</div>
+          <div class="cell__value" id="halt_flag">0</div>
+        </div>
+        <div class="cell__label">OUT</div>
+        <pre class="output" id="output"></pre>
+      </div>
+      <div class="memory" id="memory"></div>
+    </main>
+  </body>
+</html>
