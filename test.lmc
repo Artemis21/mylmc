@@ -1,4 +1,0 @@
-    lda hw
-    out
-    hlt
-hw  dat 42
