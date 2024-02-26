@@ -11,20 +11,17 @@ class Reader {
         return char;
     }
 
-    peekChar() {
-        return this.source.charAt(this.#pointer);
+    peekChar(skip = 0) {
+        return this.source.charAt(this.#pointer + skip);
     }
 
     readWord() {
         this.skipWs();
         let word = "";
         while (true) {
-            if (this.peekChar() === "") break;
-            const char = this.readChar();
-            if (char.charCodeAt(0) <= 32) { // whitespace
-                break;
-            }
-            word += char;
+            const peek = this.peekChar();
+            if (peek === "" || peek.charCodeAt(0) <= 32) break;
+            word += this.readChar();
         }
         return word || null;
     }
@@ -37,10 +34,22 @@ class Reader {
     }
 
     skipWs() {
+        let min = "";
         while (true) {
-            const peek = this.peekChar();
-            if (peek === "" || peek.charCodeAt(0) > 32) {
-                return;
+            let next = this.peekChar();
+            if (next === "/" && this.peekChar(1) === "/") {
+                this.#pointer += 2;
+                if (!min.endsWith("\n")) min += "\n";
+                min += "//";
+                while (next !== "\n") {
+                    next = this.readChar();
+                    min += next;
+                }
+                next = this.peekChar();
+            }
+            if (next === "\n") min += next;
+            if (next === "" || next.charCodeAt(0) > 32) {
+                return min;
             }
             this.#pointer++;
         }
@@ -81,13 +90,15 @@ const _OPCODES = {
 };
 const OPCODES = new Map(Object.entries(_OPCODES));
 
-class Assembler {
+export class Assembler {
     // Compiled code: an array of numbers.
     #code = new Array();
     // Map of label name to label address (an index into code).
     #labels = new Map();
     // Array of [reference address, reference label] for references to be filled later in code. 
     #refs = new Array();
+    // Prettified assembly.
+    pretty = "";
     // The source code reader;
     #reader;
 
@@ -96,29 +107,31 @@ class Assembler {
     }
 
     #assembleNext() {
-        const word = this.#reader.readWord();
-        if (word === null) return false;
+        this.pretty += this.#reader.skipWs();
+        let opWord = this.#reader.readWord();
+        if (opWord === null) return false;
         let label = null;
-        let opCode = OPCODES.get(word.toUpperCase());
+        let opCode = OPCODES.get(opWord.toUpperCase());
         if (typeof opCode === "undefined") {
-            label = word;
-            const opWord = this.#reader.readWord();
-            if (opWord === null) throw `Invalid op '${word}'`
+            label = opWord;
+            opWord = this.#reader.readWord();
+            if (opWord === null) throw `Invalid op '${label}'`
             opCode = OPCODES.get(opWord.toUpperCase());
             if (typeof opCode === "undefined") {
-                throw `Invalid op '${word} ${opWord}'`;
+                throw `Invalid op '${label} ${opWord}'`;
             }
         }
         const address = this.#code.length;
         let param = 0;
+        let paramWord = null;
         if (opCode.isDat) {
             const number = Number(this.#reader.peekWord());
             if (!isNaN(number)) {
                 param = number;
-                this.#reader.readWord();
+                paramWord = this.#reader.readWord();
             }
         } else if (opCode.hasParam) {
-            const paramWord = this.#reader.readWord();
+            paramWord = this.#reader.readWord();
             const immediate = Number(paramWord);
             if (isNaN(immediate)) this.#refs.push([address, paramWord]);
             else param = immediate;
@@ -127,7 +140,13 @@ class Assembler {
         if (label !== null) {
             this.#labels.set(label, address);
         }
+        this.#pushPretty(label, opWord, paramWord);
         return true;
+    }
+
+    #pushPretty(label, op, maybeParam) {
+        let param = maybeParam ? `\t${maybeParam}` : "";
+        this.pretty += `${label || ""}\t${op.toUpperCase()}${param}`;
     }
 
     #fillReferences() {
@@ -142,11 +161,8 @@ class Assembler {
 
     assemble() {
         while (this.#assembleNext());
+        this.pretty += this.#reader.skipWs();
         this.#fillReferences();
         return this.#code;
     }
-}
-
-export function assemble(source) {
-    return (new Assembler(source)).assemble();
 }

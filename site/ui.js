@@ -1,7 +1,8 @@
-import { assemble } from "./assembler.js";
+import { Assembler } from "./assembler.js";
 import { Machine } from "./machine.js";
 
 const sourceEl = document.getElementById("source");
+const goEl = document.getElementById("go");
 const resetEl = document.getElementById("reset");
 const loadEl = document.getElementById("load");
 const runEl = document.getElementById("run");
@@ -47,13 +48,25 @@ function getInput() {
     }
 }
 
+function loadSource() {
+    const assembler = new Assembler(sourceEl.value);
+    const code = assembler.assemble();
+    sourceEl.value = assembler.pretty;
+    machine.loadAt(code, 0);
+}
+
+goEl.onclick = () => {
+    machine.reset();
+    loadSource();
+    machine.run();
+    updateMachine();
+};
 resetEl.onclick = () => {
     machine.reset();
     updateMachine();
 };
 loadEl.onclick = () => {
-    const code = assemble(sourceEl.value);
-    machine.loadAt(code, 0);
+    loadSource();
     updateMachine();
 };
 runEl.onclick = () => {

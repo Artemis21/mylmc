@@ -10,15 +10,20 @@
   <body>
     <div class="head">
       <h1 class="title">LMC Emulator</h1>
-      <button class="action" id="reset">Reset</button>
-      <button class="action" id="load">Load</button>
-      <button class="action" id="run">Run</button>
-      <button class="action" id="step">Step</button>
+      <div class="actions">
+        <button class="action action--primary" id="go">Go</button>
+        <button class="action" id="reset">Reset</button>
+        <button class="action" id="load">Load</button>
+        <button class="action" id="run">Run</button>
+        <button class="action" id="step">Step</button>
+      </div>
     </div>
     <main>
       <div class="source">
         <div class="cell__label source__label">ASSEMBLY</div>
-        <textarea class="source__input" placeholder="Start typing..." id="source"></textarea>
+        <textarea class="source__input" placeholder="Start typing...
+
+© Artemis Vellacott 2024" id="source"></textarea>
       </div>
       <div class="registers">
         <div class="cell">
@@ -37,8 +42,10 @@
           <div class="cell__label">HLT</div>
           <div class="cell__value" id="halt_flag">0</div>
         </div>
-        <div class="cell__label">OUT</div>
-        <pre class="output" id="output"></pre>
+        <div class="output">
+          <div class="cell__label">OUT</div>
+          <pre class="output__inner" id="output"></pre>
+        </div>
       </div>
       <div class="memory" id="memory"></div>
     </main>
