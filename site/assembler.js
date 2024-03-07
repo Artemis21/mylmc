@@ -1,3 +1,15 @@
+export class Error {
+    constructor({ source, index, message }) {
+        this.source = source;
+        this.index = index;
+        this.message = message;
+    }
+
+    lineNumber() {
+        return this.source.slice(0, this.index).split("\n").length;
+    }
+}
+
 class Reader {
     #pointer = 0;
 
@@ -5,9 +17,13 @@ class Reader {
         this.source = source;
     }
 
+    error(message) {
+        throw new Error({ source: this.source, index: this.#pointer, message });
+    }
+
     readChar() {
         const char = this.source.charAt(this.#pointer++);
-        if (char === "") throw "Unexpected EOF";
+        if (char === "") this.error("Code ended unexpectedly");
         return char;
     }
 
@@ -59,9 +75,13 @@ class Reader {
         const word = this.readWord();
         const number = Number(word);
         if (isNaN(number)) {
-            throw `Expected a number, got ${word}`;
+            this.error(`Expected a number, got '${word}'`);
         }
         return number;
+    }
+
+    index() {
+        return this.#pointer;
     }
 }
 
@@ -95,7 +115,7 @@ export class Assembler {
     #code = new Array();
     // Map of label name to label address (an index into code).
     #labels = new Map();
-    // Array of [reference address, reference label] for references to be filled later in code. 
+    // Array of [reference address, reference label, source index] for references to be filled later in code. 
     #refs = new Array();
     // Prettified assembly.
     pretty = "";
@@ -115,10 +135,10 @@ export class Assembler {
         if (typeof opCode === "undefined") {
             label = opWord;
             opWord = this.#reader.readWord();
-            if (opWord === null) throw `Invalid op '${label}'`
+            if (opWord === null) this.#reader.error(`Invalid op '${label}'`);
             opCode = OPCODES.get(opWord.toUpperCase());
             if (typeof opCode === "undefined") {
-                throw `Invalid op '${label} ${opWord}'`;
+                this.#reader.error(`Invalid op '${label} ${opWord}'`);
             }
         }
         const address = this.#code.length;
@@ -133,7 +153,7 @@ export class Assembler {
         } else if (opCode.hasParam) {
             paramWord = this.#reader.readWord();
             const immediate = Number(paramWord);
-            if (isNaN(immediate)) this.#refs.push([address, paramWord]);
+            if (isNaN(immediate)) this.#refs.push([address, paramWord, this.#reader.index()]);
             else param = immediate;
         }
         this.#code.push(opCode.code + param);
@@ -150,10 +170,10 @@ export class Assembler {
     }
 
     #fillReferences() {
-        for (const [address, ref] of this.#refs) {
+        for (const [address, ref, index] of this.#refs) {
             const value = this.#labels.get(ref);
             if (typeof value === "undefined") {
-                throw `Undefined reference ${ref}`;
+                throw new Error({ source: this.#reader.source, index, message: `Undefined reference ${ref}` });
             }
             this.#code[address] += value;
         }

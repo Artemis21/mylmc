@@ -1,4 +1,4 @@
-import { Assembler } from "./assembler.js";
+import { Assembler, Error as AssemblerError } from "./assembler.js";
 import { Machine } from "./machine.js";
 
 const sourceEl = document.getElementById("source");
@@ -50,16 +50,36 @@ function getInput() {
 
 function loadSource() {
     const assembler = new Assembler(sourceEl.value);
-    const code = assembler.assemble();
+    let code;
+    try {
+        code = assembler.assemble();
+    } catch (e) {
+        alert(`Assembler error at line ${e.lineNumber()}: ${e.message}`);
+        return;
+    } 
     sourceEl.value = assembler.pretty;
     machine.loadAt(code, 0);
+}
+
+function runTillHalt() {
+    let halted = false;
+    try {
+        // run for 30ms between display updates
+        halted = machine.runFor(30);
+    } catch (e) {
+        alert(e);
+        halted = true;
+    }
+    updateMachine();
+    // prevents freezing and shows feedback
+    if (!halted) window.requestAnimationFrame(runTillHalt);
 }
 
 goEl.onclick = () => {
     machine.reset();
     loadSource();
-    machine.run();
     updateMachine();
+    runTillHalt();
 };
 resetEl.onclick = () => {
     machine.reset();
@@ -69,12 +89,13 @@ loadEl.onclick = () => {
     loadSource();
     updateMachine();
 };
-runEl.onclick = () => {
-    machine.run();
-    updateMachine();
-};
+runEl.onclick = runTillHalt;
 stepEl.onclick = () => {
-    machine.execNext();
+    try {
+        machine.execNext();
+    } catch (e) {
+        runtimeError(e);
+    }
     updateMachine();
 };
 
